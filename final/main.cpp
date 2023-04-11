@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "scenerunner.h"
+#include "scenebasic.h"
 
 #include <memory>
 
@@ -13,7 +14,7 @@ int main(int argc, char *argv[])
 
 	std::unique_ptr<Scene> scene;
 
-	//scene = std::unique_ptr<Scene>(new SceneBasic()); // Add our main scene
+	scene = std::unique_ptr<Scene>(new SceneBasic()); // Add our main scene
 
 	return runner.run(std::move(scene));
 }
