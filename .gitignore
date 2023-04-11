@@ -30,5 +30,12 @@
 *.exe
 *.out
 *.app
+*.swp
+
 
 build/
+
+# Cmake stuff
+CMakeCache.txt
+CMakeFiles/
+Makefile
