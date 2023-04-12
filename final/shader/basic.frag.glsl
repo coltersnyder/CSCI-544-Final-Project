@@ -1,8 +1,10 @@
 #version 410
 
-layout(location=0) in vec3 vColor;
+layout (location=0) in vec2 texCoord;
+
 layout (location=0) out vec4 FragColor;
 
+uniform sampler2D texMap;
 void main() {
-    FragColor = vec4(vColor, 1.0);
+	 FragColor = texture(texMap, texCoord);
 }

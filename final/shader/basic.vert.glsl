@@ -1,19 +1,14 @@
 #version 410
 
 layout (location=0) in vec3 VertexPosition;
-layout (location=2) in vec3 VertexColor;
+layout (location=1) in vec2 vTexCoord;
 
-layout (location=0) out vec3 vColor;
+layout (location=0) out vec2 texCoord;
 
-layout (std140) uniform vertexBlock{
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-};
+uniform mat4 MVP;
 
 void main()
 {
-    vColor = VertexColor;
-
-    gl_Position = projection * view * model * vec4(VertexPosition,1.0);
+	texCoord = vTexCoord;
+	gl_Position = MVP * vec4(VertexPosition,1.0);
 }

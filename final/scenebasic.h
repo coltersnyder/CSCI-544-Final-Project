@@ -9,18 +9,19 @@
 class SceneBasic : public Scene
 {
 private:
-    GLuint vaoHandle;
+    GLuint vaoHandle, texHandle;
     GLuint programHandle;
 
-    void linkMe(GLint vertShader, GLint fragShader);
+   void linkMe(GLint vertShader, GLint fragShader);
 	void compileShaderProgram();
-    void writeShaderBinary();
-	void loadShaderBinary(GLint);
-	void loadSpirvShader();
+	GLuint setupTexture();
+
 	float angle;
 	float tPrev, rotSpeed;
-    std::string getShaderInfoLog(GLuint shader);
-    std::string getProgramInfoLog(GLuint program);
+   std::string getShaderInfoLog(GLuint shader);
+   std::string getProgramInfoLog(GLuint program);
+	
+
 public:
     SceneBasic();
 

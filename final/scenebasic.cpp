@@ -14,6 +14,7 @@ using std::string;
 #include "glutils.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
+#include "stb/stb_image.h" //for loading images
 using glm::vec3;
 using glm::mat4;
 
@@ -24,8 +25,38 @@ using glm::mat4;
 
 SceneBasic::SceneBasic() { }
 
-void SceneBasic::initScene()
-{
+GLuint SceneBasic::setupTexture(){//this could just be the texture library in ingredients
+	GLuint textureHandle = 0;
+	GLint imageWidth, imageHeight, imageChannels;
+	const char * FILENAME = "./image/white.png";
+
+   GLubyte* data = stbi_load( FILENAME, &imageWidth, &imageHeight, &imageChannels, 0);
+	
+	
+	if( data ) {
+		glGenTextures(1, &textureHandle);
+   	glBindTexture(GL_TEXTURE_2D,textureHandle);
+      const GLint STORAGE_TYPE = (imageChannels == 4 ? GL_RGBA : GL_RGB);
+   	
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+   	
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		
+   	glTexImage2D(GL_TEXTURE_2D,0,STORAGE_TYPE,
+         imageWidth,imageHeight,0,
+         STORAGE_TYPE,GL_UNSIGNED_BYTE,data);
+		fprintf( stdout, "%s texture map read in with handle %d\n", FILENAME, textureHandle);
+		stbi_image_free(data);//clean up
+	}
+	else{
+		fprintf( stderr, "ERROR: Could not load texture map \"%s\"\n", FILENAME );
+	}
+	
+	return textureHandle;
+}
+
+
+void SceneBasic::initScene(){
     // **************************************************************************************
     // Choose one of the following options for the shader program.
     //  1)  Compile the shader program normally
@@ -39,67 +70,20 @@ void SceneBasic::initScene()
 	projection = mat4(1.0f);
 	angle = glm::radians(140.0f);
 	tPrev = 0;
-	rotSpeed = glm::pi<float>()/8.0f;
+	rotSpeed = PI/16.0f;
 
     // (1) Use this to load and compile the shader program.
     compileShaderProgram();
 
-    // (2) Use this to load a binary shader.  Use the format provided when the binary was written.
-    // int shaderFormat = 36385;
-    // loadShaderBinary(shaderFormat);
-
-    // (3) Load a SPIR-V shader
-    // loadSpirvShader();
-
-    // Optional:  use this to write the shader binary out to a file.
-    //writeShaderBinary();
-
     /////////////////// Create the VBO ////////////////////
-	 /*
-	 float positionData[] = {
-	 	-0.5, -0.5, -0.5,
-		0.5, -0.5, -0.5,
-		0.5, 0.5, -0.5,
-		-0.5, 0.5, -0.5,
-		-0.5, -0.5, 0.5,
-		0.5, -0.5, 0.5,
-		0.5, 0.5, 0.5,
-	  	-0.5, 0.5, 0.5};
-	 float colorData[] = {
-		0,0,0,
-		0,1,0,
-		1,1,0,
-		1,0,0,
-		0,0,1,
-		0,1,1,
-		1,1,1,
-		1,0,1};
-	 GLuint indexData[] = {
-				0,2,1,
-				0,3,2,
-				
-				1,2,5,
-				5,2,6,
-				
-				2,7,6,
-				3,7,2,
-
-				0,1,4,
-				1,5,4,
-				
-				4,5,6,
-				4,6,7,
-
-				0,4,3,
-				4,7,3};
-				*/
-    float quadVertices[12] = {
-             -2.5f, -2.5f,  0.0f, // 0 - BL
-              2.5f, -2.5f,  0.0f, // 1 - BR
-             -2.5f,  2.5f,  0.0f, // 2 - TL
-              2.5f,  2.5f,  0.0f  // 3 - TR
+    float quadVertices[] = {
+             -2.5f, -2.5f,  0.0f, 0.0f, 0.0f, // 0 - BL
+              2.5f, -2.5f,  0.0f, 1.0f, 0.0f,// 1 - BR
+             -2.5f,  2.5f,  0.0f, 0.0f, 1.0f,// 2 - TL
+              2.5f,  2.5f,  0.0f, 1.0f, 1.0f// 3 - TR
     };
 	 GLuint indexData[] = {0,1,2,3};
+	 this->texHandle = setupTexture(); 
 
     // Create and populate the buffer objects
     GLuint index_buffer;
@@ -110,7 +94,7 @@ void SceneBasic::initScene()
     GLuint positionBufferHandle = vbo;
 
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), quadVertices, GL_STATIC_DRAW);
 
 	 //Index buffer
 	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
@@ -126,78 +110,22 @@ void SceneBasic::initScene()
     glEnableVertexAttribArray(0);  // Vertex position
 
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte *)NULL );
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (GLubyte *)NULL );
+
+    glEnableVertexAttribArray(1);  // Texture position
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*) (sizeof(float)*3));
+
+	 
+	 glActiveTexture(GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, texHandle);
+
+	 GLuint texmapPos = glGetUniformLocation(programHandle,"texMap");
+		
+
     
 	 glBindVertexArray(0);
 }
 
-void SceneBasic::loadSpirvShader() {
-
-    std::cout << "Loading SPIR-V shaders." << std::endl;
-
-    GLint status;
-    GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-
-    {
-        std::cout <<  "Loading SPIR-V binary: shader/vert.spv" << std::endl;
-        std::ifstream inStream("shader/vert.spv", std::ios::binary);
-        std::istreambuf_iterator<char> startIt(inStream), endIt;
-        std::vector<char> buffer(startIt, endIt);
-        inStream.close();
-
-        glShaderBinary(1, &vertShader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, buffer.data(), buffer.size());
-    }
-
-    glSpecializeShaderARB( vertShader, "main", 0, 0, 0);
-
-    glGetShaderiv(vertShader, GL_COMPILE_STATUS, &status);
-    if( GL_FALSE == status ) {
-        std::cerr << "Failed to load vertex shader (SPIR-V)" << std::endl;
-        std::cerr << getShaderInfoLog(vertShader) << std::endl;
-        exit(-1);
-    }
-
-    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    {
-        std::cout <<  "Loading SPIR-V binary: shader/frag.spv" << std::endl;
-        std::ifstream inStream("shader/frag.spv", std::ios::binary);
-        std::istreambuf_iterator<char> startIt(inStream), endIt;
-        std::vector<char> buffer(startIt, endIt);
-        inStream.close();
-
-        glShaderBinary(1, &fragShader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, buffer.data(), buffer.size());
-    }
-
-    glSpecializeShaderARB( fragShader, "main", 0, 0, 0);
-
-    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &status);
-    if( GL_FALSE == status ) {
-        std::cerr << "Failed to load fragment shader (SPIR-V)" << std::endl;
-        std::cerr << getShaderInfoLog(fragShader) << std::endl;
-        exit(-1);
-    }
-
-    // Create the program object
-    programHandle = glCreateProgram();
-    if (0 == programHandle) {
-        std::cerr << "Error creating program object." << std::endl;
-        exit(1);
-    }
-
-    glAttachShader(programHandle, vertShader);
-    glAttachShader(programHandle, fragShader);
-    glLinkProgram(programHandle);
-
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &status);
-    if (GL_FALSE == status) {
-        std::cerr << "Failed to link SPIR-V program" << std::endl;
-        std::cerr << getProgramInfoLog(programHandle) << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    glUseProgram(programHandle);
-}
 
 void SceneBasic::compileShaderProgram() {
     std::cout << "Compiling shader program" << std::endl;
@@ -282,33 +210,6 @@ void SceneBasic::compileShaderProgram() {
 	linkMe(vertShader, fragShader);
 }
 
-void SceneBasic::loadShaderBinary(GLint format) {
-    std::cout << "Loading shader binary: shader/program.bin (format = " << format << ")" << std::endl;
-
-    // Create the program object
-	programHandle = glCreateProgram();
-	if (0 == programHandle) {
-		std::cerr << "Error creating program object." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	std::ifstream inStream("shader/program.bin", std::ios::binary);
-	std::istreambuf_iterator<char> startIt(inStream), endIt;
-	std::vector<char> buffer(startIt, endIt);
-	inStream.close();
-	glProgramBinary(programHandle, format, buffer.data(), buffer.size());
-
-	// Check for successful linking
-	GLint status;
-	glGetProgramiv(programHandle, GL_LINK_STATUS, &status);
-	if (GL_FALSE == status) {
-		std::cerr << "Failed to load binary shader program!" << std::endl;
-        std::cerr << getProgramInfoLog(programHandle) << std::endl;
-        exit(EXIT_FAILURE);
-	}
-	glUseProgram(programHandle);
-}
-
 void SceneBasic::linkMe(GLint vertShader, GLint fragShader)
 {
     // Create the program object
@@ -348,29 +249,6 @@ void SceneBasic::linkMe(GLint vertShader, GLint fragShader)
     glUseProgram( programHandle );
 }
 
-void SceneBasic::writeShaderBinary() {
-    GLint formats;
-    glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &formats);
-    std::cout << "Number of binary formats supported by this driver = " << formats << std::endl;
-
-    if( formats > 0 ) {
-        GLint length;
-        glGetProgramiv(programHandle, GL_PROGRAM_BINARY_LENGTH, &length);
-        std::cout << "Program binary length = " << length << std::endl;
-
-        std::vector<GLubyte> buffer(length);
-        GLenum format;
-        glGetProgramBinary(programHandle, length, NULL, &format, buffer.data());
-        std::string fName("shader/program.bin");
-
-        std::cout << "Writing to " << fName << ", binary format = " << format << std::endl;
-        std::ofstream out(fName.c_str(), std::ios::binary);
-        out.write( reinterpret_cast<char *>(buffer.data()), length );
-        out.close();
-    } else {
-        std::cout << "No binary formats supported by this driver.  Unable to write shader binary." << std::endl;
-    }
-}
 
 std::string SceneBasic::getShaderInfoLog(GLuint shader) {
     GLint logLen;
@@ -412,15 +290,21 @@ void SceneBasic::render()
 {
 	glViewport(0,0,width,height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	vec3 cameraPos = vec3(10.0f * cos(angle), 5.0f, 10.0f * sin(angle));//TODO we can probally remove this part
 	view = glm::lookAt(cameraPos, vec3(0.0f,0.0f,0.0f), vec3(0.0f,1.0f,0.0f));
+
+	//Setup the MVP matrix
 	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 100.0f);
 	model = glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(1.0f,0.0f,0.0f));
 	mat4 mvp = projection * view * model;
+	
+	//Send the MVP matrix
 	GLint mvp_location = glGetUniformLocation(programHandle,"MVP");
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, &(mvp)[0][0]);
 
     glClear(GL_COLOR_BUFFER_BIT);
+	 glBindTexture(GL_TEXTURE_2D,texHandle);
     glBindVertexArray(vaoHandle);
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT,0);
 	 glBindVertexArray(0);
