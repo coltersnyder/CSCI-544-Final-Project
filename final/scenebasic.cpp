@@ -17,6 +17,11 @@ using std::string;
 using glm::vec3;
 using glm::mat4;
 
+
+#ifndef PI
+#define PI 3.14159265
+#endif
+
 SceneBasic::SceneBasic() { }
 
 void SceneBasic::initScene()
@@ -50,6 +55,7 @@ void SceneBasic::initScene()
     //writeShaderBinary();
 
     /////////////////// Create the VBO ////////////////////
+	 /*
 	 float positionData[] = {
 	 	-0.5, -0.5, -0.5,
 		0.5, -0.5, -0.5,
@@ -86,36 +92,29 @@ void SceneBasic::initScene()
 
 				0,4,3,
 				4,7,3};
-
-	 /* 
-	 float positionData[] = {
-            -0.8f, -0.8f, 0.0f,
-            0.8f, -0.8f, 0.0f,
-            0.0f,  0.8f, 0.0f };
-    float colorData[] = {
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f };
-	*/
+				*/
+    float quadVertices[12] = {
+             -2.5f, -2.5f,  0.0f, // 0 - BL
+              2.5f, -2.5f,  0.0f, // 1 - BR
+             -2.5f,  2.5f,  0.0f, // 2 - TL
+              2.5f,  2.5f,  0.0f  // 3 - TR
+    };
+	 GLuint indexData[] = {0,1,2,3};
 
     // Create and populate the buffer objects
     GLuint index_buffer;
 	 glGenBuffers(1, &index_buffer);
 
-	 GLuint vboHandles[2];
-    glGenBuffers(2, vboHandles);
-    GLuint positionBufferHandle = vboHandles[0];
-    GLuint colorBufferHandle = vboHandles[1];
+	 GLuint vbo;
+    glGenBuffers(1, &vbo);
+    GLuint positionBufferHandle = vbo;
 
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
-    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), positionData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), quadVertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, colorBufferHandle);
-    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), colorData, GL_STATIC_DRAW);
-	 
 	 //Index buffer
 	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12*3*sizeof(GLuint),
+	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4*sizeof(GLuint),
 						  (void *)&(indexData[0]),GL_STATIC_DRAW);
 
     // Create and set-up the vertex array object
@@ -125,14 +124,11 @@ void SceneBasic::initScene()
 	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 
     glEnableVertexAttribArray(0);  // Vertex position
-    glEnableVertexAttribArray(1);  // Vertex color
 
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte *)NULL );
-
-    glBindBuffer(GL_ARRAY_BUFFER, colorBufferHandle);
-    glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte *)NULL );
-    glBindVertexArray(0);
+    
+	 glBindVertexArray(0);
 }
 
 void SceneBasic::loadSpirvShader() {
@@ -416,17 +412,17 @@ void SceneBasic::render()
 {
 	glViewport(0,0,width,height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	vec3 cameraPos = vec3(2.0f * cos(angle), 1.5f, 2.0f * sin(angle));
+	vec3 cameraPos = vec3(10.0f * cos(angle), 5.0f, 10.0f * sin(angle));//TODO we can probally remove this part
 	view = glm::lookAt(cameraPos, vec3(0.0f,0.0f,0.0f), vec3(0.0f,1.0f,0.0f));
 	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 100.0f);
-	model = mat4(1.0f);
+	model = glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(1.0f,0.0f,0.0f));
 	mat4 mvp = projection * view * model;
 	GLint mvp_location = glGetUniformLocation(programHandle,"MVP");
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, &(mvp)[0][0]);
 
     glClear(GL_COLOR_BUFFER_BIT);
     glBindVertexArray(vaoHandle);
-    glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT,0);
+    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT,0);
 	 glBindVertexArray(0);
 }
 
