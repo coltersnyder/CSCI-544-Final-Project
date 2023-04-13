@@ -87,11 +87,11 @@ void SceneBasic::initScene(){
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 
 	std::vector<float> quadVertices;
-	resolution = 512;
+	resolution = 20;
 
 	// TODO: Load Height Map isntead of temp width, height
-	width = 4;
-	height = 4;
+	width = 1028;
+	height = 1028;
 	// END TODO
 
 	for(int i = 0; i < resolution; i++){
@@ -412,7 +412,7 @@ void SceneBasic::render()
 	glViewport(0,0,width,height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	vec3 cameraPos = vec3(10.0f * cos(angle), 5.0f, 10.0f * sin(angle));//TODO we can probally remove this part
+	vec3 cameraPos = vec3(50.0f * cos(angle), 5.0f, 50.0f * sin(angle));//TODO we can probally remove this part
 	view = glm::lookAt(cameraPos, vec3(0.0f,0.0f,0.0f), vec3(0.0f,1.0f,0.0f));
 
 	//Setup the MVP matrix
