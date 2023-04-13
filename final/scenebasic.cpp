@@ -87,7 +87,7 @@ void SceneBasic::initScene(){
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 
 	std::vector<float> quadVertices;
-	resolution = 20;
+	resolution = 512;
 
 	// TODO: Load Height Map isntead of temp width, height
 	width = 4;
