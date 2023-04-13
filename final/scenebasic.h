@@ -18,6 +18,9 @@ private:
 
 	float angle;
 	float tPrev, rotSpeed;
+
+    unsigned int resolution;
+    int width, height;
    std::string getShaderInfoLog(GLuint shader);
    std::string getProgramInfoLog(GLuint program);
 	

@@ -76,36 +76,75 @@ void SceneBasic::initScene(){
     compileShaderProgram();
 
     /////////////////// Create the VBO ////////////////////
-    float quadVertices[] = {
-             -2.5f, -2.5f,  0.0f, 0.0f, 0.0f, // 0 - BL
-              2.5f, -2.5f,  0.0f, 1.0f, 0.0f,// 1 - BR
-             -2.5f,  2.5f,  0.0f, 0.0f, 1.0f,// 2 - TL
-              2.5f,  2.5f,  0.0f, 1.0f, 1.0f// 3 - TR
-    };
-	 GLuint indexData[] = {0,1,2,3};
-	 this->texHandle = setupTexture(); 
+    // float quadVertices[] = {
+    //          -2.5f, -2.5f,  0.0f, 0.0f, 0.0f, // 0 - BL
+    //           2.5f, -2.5f,  0.0f, 1.0f, 0.0f,// 1 - BR
+    //          -2.5f,  2.5f,  0.0f, 0.0f, 1.0f,// 2 - TL
+    //           2.5f,  2.5f,  0.0f, 1.0f, 1.0f// 3 - TR
+    // };
+	//  GLuint indexData[] = {0,1,2,3};
+
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+	std::vector<float> quadVertices;
+	resolution = 20;
+
+	// TODO: Load Height Map isntead of temp width, height
+	width = 4;
+	height = 4;
+	// END TODO
+
+	for(int i = 0; i < resolution; i++){
+		for(int j = 0; j < resolution; j++){
+			quadVertices.push_back(-width/2.0f + width*i/(float)resolution); // v.x
+			quadVertices.push_back(0.0f); // v.y
+			quadVertices.push_back(-height/2.0f + height*j/(float)resolution); // v.z
+			quadVertices.push_back(i / (float)resolution); // u
+			quadVertices.push_back(j / (float)resolution); // v
+
+			quadVertices.push_back(-width/2.0f + width*(i+1)/(float)resolution); // v.x
+			quadVertices.push_back(0.0f); // v.y
+			quadVertices.push_back(-height/2.0f + height*j/(float)resolution); // v.z
+			quadVertices.push_back((i+1) / (float)resolution); // u
+			quadVertices.push_back(j / (float)resolution); // v
+
+			quadVertices.push_back(-width/2.0f + width*i/(float)resolution); // v.x
+			quadVertices.push_back(0.0f); // v.y
+			quadVertices.push_back(-height/2.0f + height*(j+1)/(float)resolution); // v.z
+			quadVertices.push_back(i / (float)resolution); // u
+			quadVertices.push_back((j+1) / (float)resolution); // v
+
+			quadVertices.push_back(-width/2.0f + width*(i+1)/(float)resolution); // v.x
+			quadVertices.push_back(0.0f); // v.y
+			quadVertices.push_back(-height/2.0f + height*(j+1)/(float)resolution); // v.z
+			quadVertices.push_back((i+1) / (float)resolution); // u
+			quadVertices.push_back((j+1) / (float)resolution); // v
+		}
+	}
+
+	this->texHandle = setupTexture(); 
 
     // Create and populate the buffer objects
-    GLuint index_buffer;
-	 glGenBuffers(1, &index_buffer);
+    // GLuint index_buffer;
+	// glGenBuffers(1, &index_buffer);
 
-	 GLuint vbo;
+	GLuint vbo;
     glGenBuffers(1, &vbo);
     GLuint positionBufferHandle = vbo;
 
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
-    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(float), &quadVertices[0], GL_STATIC_DRAW);
 
-	 //Index buffer
-	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4*sizeof(GLuint),
-						  (void *)&(indexData[0]),GL_STATIC_DRAW);
+	 // Index buffer
+	 // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+	 // glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4*sizeof(GLuint),
+	 //					  (void *)&(indexData[0]),GL_STATIC_DRAW);
 
     // Create and set-up the vertex array object
     glGenVertexArrays( 1, &vaoHandle );
     glBindVertexArray(vaoHandle);
 
-	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 
     glEnableVertexAttribArray(0);  // Vertex position
 
@@ -306,7 +345,7 @@ void SceneBasic::render()
     glClear(GL_COLOR_BUFFER_BIT);
 	 glBindTexture(GL_TEXTURE_2D,texHandle);
     glBindVertexArray(vaoHandle);
-    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT,0);
+    glDrawArrays(GL_PATCHES, 0, 4*resolution*resolution);
 	 glBindVertexArray(0);
 }
 
