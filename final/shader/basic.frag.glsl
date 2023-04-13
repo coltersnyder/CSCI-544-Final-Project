@@ -1,10 +1,10 @@
 #version 410
 
-layout (location=0) in vec2 texCoord;
+in float Height;
 
 layout (location=0) out vec4 FragColor;
 
-uniform sampler2D texMap;
 void main() {
-	 FragColor = texture(texMap, texCoord);
+	 float h = (Height + 16)/64.0f;
+	 FragColor = vec4(h, h, h, 1.0);
 }

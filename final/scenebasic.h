@@ -12,7 +12,7 @@ private:
     GLuint vaoHandle, texHandle;
     GLuint programHandle;
 
-   void linkMe(GLint vertShader, GLint fragShader);
+   void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
 	void compileShaderProgram();
 	GLuint setupTexture();
 

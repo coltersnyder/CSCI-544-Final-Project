@@ -209,6 +209,82 @@ void SceneBasic::compileShaderProgram() {
 	}
 
 	//////////////////////////////////////////////////////
+	/////////// Tesselation Control shader ///////////////
+	//////////////////////////////////////////////////////
+
+	// Load contents of file
+	std::ifstream tcsFile("shader/basic.tcs.glsl");
+	if (!tcsFile) {
+		fprintf(stderr, "Error opening file: shader/basic.tcs.glsl\n");
+		exit(1);
+	}
+
+	std::stringstream tcsCode;
+	tcsCode << tcsFile.rdbuf();
+	tcsFile.close();
+	string tcsCodeStr(tcsCode.str());
+
+	// Create the shader object
+	GLuint tcsShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+	if (0 == tcsShader) {
+		std::cerr << "Error creating tesselation control shader." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	// Load the source code into the shader object
+	const GLchar* tcsCodeArray[] = { tcsCodeStr.c_str() };
+	glShaderSource(tcsShader, 1, tcsCodeArray, NULL);
+
+	// Compile the shader
+	glCompileShader(tcsShader);
+
+	// Check compilation status
+	glGetShaderiv(tcsShader, GL_COMPILE_STATUS, &result);
+	if (GL_FALSE == result) {
+		std::cerr << "Tesselation control shader compilation failed!" << std::endl;
+		std::cerr << getShaderInfoLog(tcsShader) << std::endl;
+        exit(EXIT_FAILURE);
+	}
+
+	//////////////////////////////////////////////////////
+	/////////// Tesselation Evaluation shader ////////////
+	//////////////////////////////////////////////////////
+
+	// Load contents of file
+	std::ifstream tesFile("shader/basic.tes.glsl");
+	if (!tcsFile) {
+		fprintf(stderr, "Error opening file: shader/basic.tes.glsl\n");
+		exit(1);
+	}
+
+	std::stringstream tesCode;
+	tesCode << tesFile.rdbuf();
+	tesFile.close();
+	string tesCodeStr(tesCode.str());
+
+	// Create the shader object
+	GLuint tesShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+	if (0 == tesShader) {
+		std::cerr << "Error creating tesselation evaluation shader." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	// Load the source code into the shader object
+	const GLchar* tesCodeArray[] = { tesCodeStr.c_str() };
+	glShaderSource(tesShader, 1, tesCodeArray, NULL);
+
+	// Compile the shader
+	glCompileShader(tesShader);
+
+	// Check compilation status
+	glGetShaderiv(tesShader, GL_COMPILE_STATUS, &result);
+	if (GL_FALSE == result) {
+		std::cerr << "Tesselation evaluation shader compilation failed!" << std::endl;
+		std::cerr << getShaderInfoLog(tesShader) << std::endl;
+        exit(EXIT_FAILURE);
+	}
+
+	//////////////////////////////////////////////////////
 	/////////// Fragment shader //////////////////////////
 	//////////////////////////////////////////////////////
 
@@ -242,14 +318,14 @@ void SceneBasic::compileShaderProgram() {
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &result);
 	if (GL_FALSE == result) {
         std::cerr << "Fragment shader compilation failed!" << std::endl;
-        std::cerr << getShaderInfoLog(vertShader) << std::endl;
+        std::cerr << getShaderInfoLog(fragShader) << std::endl;
         exit(EXIT_FAILURE);
 	}
 
-	linkMe(vertShader, fragShader);
+	linkMe(vertShader, tcsShader, tesShader, fragShader);
 }
 
-void SceneBasic::linkMe(GLint vertShader, GLint fragShader)
+void SceneBasic::linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader)
 {
     // Create the program object
     programHandle = glCreateProgram();
@@ -265,6 +341,8 @@ void SceneBasic::linkMe(GLint vertShader, GLint fragShader)
 
     // Attach the shaders to the program object
     glAttachShader( programHandle, vertShader );
+	glAttachShader( programHandle, tcsShader  );
+	glAttachShader( programHandle, tesShader  );
     glAttachShader( programHandle, fragShader );
 
     // Link the program
@@ -281,8 +359,12 @@ void SceneBasic::linkMe(GLint vertShader, GLint fragShader)
 
 	// Clean up shader objects
 	glDetachShader(programHandle, vertShader);
+	glDetachShader(programHandle, tcsShader );
+	glDetachShader(programHandle, tesShader );
 	glDetachShader(programHandle, fragShader);
 	glDeleteShader(vertShader);
+	glDeleteShader(tcsShader );
+	glDeleteShader(tesShader );
 	glDeleteShader(fragShader);
 
     glUseProgram( programHandle );
