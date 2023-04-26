@@ -37,6 +37,7 @@ void main(){
     vec4 p1 = (p11 - p10) * u + p10;
     vec4 p = (p1 - p0) * v + p0;
 
+
     p += normal * Height;
 
     gl_Position = MVP * p;

@@ -411,13 +411,22 @@ void SceneBasic::render()
 {
 	glViewport(0,0,width,height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glm::vec3 Front;
+	glm::vec3 front;
+	float Yaw = -128.1f;
+	float Pitch = -42.4f;
+    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    front.y = sin(glm::radians(Pitch));
+    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    Front = glm::normalize(front);
 	
-	vec3 cameraPos = vec3(50.0f * cos(angle), 5.0f, 50.0f * sin(angle));//TODO we can probally remove this part
-	view = glm::lookAt(cameraPos, vec3(0.0f,0.0f,0.0f), vec3(0.0f,1.0f,0.0f));
+	vec3 cameraPos = vec3(150.0f * cos(angle), 100.0f, 150.0f * sin(angle));//TODO we can probally remove this part
+	view = glm::lookAt(cameraPos, cameraPos + Front, vec3(0.0f,1.0f,0.0f));
 
 	//Setup the MVP matrix
 	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 100.0f);
-	model = glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(1.0f,0.0f,0.0f));
+	model = glm::mat4(1.0f);//glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(0.0f,0.0f,0.0f));
 	mat4 mvp = projection * view * model;
 	
 	//Send the MVP matrix
