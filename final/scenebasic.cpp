@@ -29,20 +29,56 @@ GLuint _leftMouseButtonState = 0;
 int zoom = 0;
 int vert = 0;
 int horz = 0;
+int reset = 0;
 
 //what texture we should be on
 int texID = 0;
+
+//should we reload the scratch layer?
+bool reloadScratch = 0;
+
+
 SceneBasic::SceneBasic() {
 	 _arcCam = new ArcCam();//make a new arcCamera
     _arcCam->setPosition(vec3(10.0f * cos(angle), 1.5f, 10.0f * sin(angle)));
-    _arcCam->setTheta( -M_PI / 3.0f );
-    _arcCam->setPhi( M_PI / 3.0f );
+    _arcCam->setTheta(0);
+    _arcCam->setPhi(0.001);
+	 _arcCam->_radius = 500.0f;
     _arcCam->setLookAtPoint(glm::vec3(0,0,0));
     _arcCam->recomputeOrientation();
 }
 SceneBasic::~SceneBasic(){
 	delete _arcCam;
 }
+
+void SceneBasic::loadScratch(GLuint textureHandle){//load the scratch map
+
+	GLint imageWidth, imageHeight, imageChannels;
+	const char * FILENAME = "./image/scratch.png";
+   GLubyte* data = stbi_load( FILENAME, &imageWidth, &imageHeight, &imageChannels, 0);
+	
+	
+	if( data ) {
+   	glBindTexture(GL_TEXTURE_2D,textureHandle);
+      const GLint STORAGE_TYPE = (imageChannels == 4 ? GL_RGBA : GL_RGB);
+   	
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+   	
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		
+   	glTexImage2D(GL_TEXTURE_2D,0,STORAGE_TYPE,
+         imageWidth,imageHeight,0,
+         STORAGE_TYPE,GL_UNSIGNED_BYTE,data);
+		fprintf( stdout, "%s texture map read in with handle %d\n", FILENAME, textureHandle);
+		stbi_image_free(data);//clean up
+	}
+	else{
+		fprintf( stderr, "ERROR: Could not load scratch map \"%s\"\n", FILENAME );
+	}
+
+}
+
+
 
 GLuint SceneBasic::setupTexture(const char *FILENAME){//this could just be the texture library in ingredients
 	GLuint textureHandle = 0;
@@ -145,8 +181,20 @@ void SceneBasic::initScene(){
 	}
 
 	this->texHandle[0] = setupTexture("./image/happy.png"); 
-	this->texHandle[1] = setupTexture("./image/mad.png"); 
-	this->texHandle[2] = setupTexture("./image/map.png"); 
+	this->texHandle[1] = setupTexture("./image/mad.png");
+	this->texHandle[2] = setupTexture("./image/fish.jpg"); 
+	this->texHandle[3] = setupTexture("./image/mona.jpg");
+	this->texHandle[4] = setupTexture("./image/snow.jpg"); 
+	this->texHandle[5] = setupTexture("./image/group.jpg");
+	this->texHandle[6] = setupTexture("./image/map.png");
+	
+	//generate the handle for our scratch layer
+	glGenTextures(1, &scratchHandle);
+	loadScratch(scratchHandle);
+	glActiveTexture(GL_TEXTURE1);
+   glBindTexture( GL_TEXTURE_2D, scratchHandle);
+	
+	//glUniform1i(scratchMap, 1);
 
     // Create and populate the buffer objects
     // GLuint index_buffer;
@@ -182,10 +230,11 @@ void SceneBasic::initScene(){
 	 glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, texHandle[texID]);
 
-	 GLuint texmapPos = glGetUniformLocation(programHandle,"texMap");
-		
+	 GLuint texMap = glGetUniformLocation(programHandle,"texMap");	
+	 this->scratchMap = glGetUniformLocation(programHandle,"moveMap");	
+	 glUniform1i(texMap, 0);
+	 glUniform1i(scratchMap,  1);
 
-    
 	 glBindVertexArray(0);
 	 setCallbacks();
 }
@@ -422,7 +471,15 @@ std::string SceneBasic::getProgramInfoLog(GLuint program) {
     }
     return log;
 }
-void SceneBasic::handleCursor(glm::vec2 pos) {
+void SceneBasic::handleCamera(glm::vec2 pos) {
+	if(reset){
+    _arcCam->setTheta(0);
+    _arcCam->setPhi(0.001);
+	 _arcCam->_radius = 500.0f;
+    _arcCam->setLookAtPoint(glm::vec3(0,0,0));
+	 reset = 0;
+	 return;
+	}
    if(_mousePosition.x == -1) {//initilize the mouse so the camera dosn't flip
         _mousePosition = pos;
     }
@@ -433,34 +490,38 @@ void SceneBasic::handleCursor(glm::vec2 pos) {
    }
    _mousePosition = pos;
 	if(zoom == 1){
-			  _arcCam->moveForward(0.5);
+			  _arcCam->moveForward(20);
 			  zoom = 0;
 	}
 	else if(zoom == -1){
-			  _arcCam->moveBackward(0.5);
+			  _arcCam->moveBackward(20);
 			  zoom = 0;
 	}
 	if(vert == 1){
-			  _arcCam->moveVert(1);
+			  _arcCam->moveVert(3);
 			  vert = 0;
 	}
 	else if(vert == -1){
-			  _arcCam->moveVert(-1);
+			  _arcCam->moveVert(-3);
 			  vert = 0;
 	}
 	if(horz == 1){
-			  _arcCam->moveHorz(1);
+			  _arcCam->moveHorz(3);
 			  horz = 0;
 	}
 	else if(horz == -1){
-			  _arcCam->moveHorz(-1);
+			  _arcCam->moveHorz(-3);
 			  horz = 0;
 	}
 }  
 
 void SceneBasic::update( float t )
 {
-		  handleCursor(_newMousePos);
+		  handleCamera(_newMousePos);
+		  if(reloadScratch){
+					 reloadScratch = false;
+					 loadScratch(scratchHandle);
+		  }
 }
 
 void SceneBasic::render()
@@ -474,7 +535,7 @@ void SceneBasic::render()
 
 	//Setup the MVP matrix
 	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 3000.0f);
-	model = glm::mat4(1.0f);//glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(0.0f,0.0f,0.0f));
+	model = glm::mat4(1.0f);
 	mat4 mvp = projection * view * model;
 	
 	//Send the MVP matrix
@@ -482,8 +543,14 @@ void SceneBasic::render()
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, &(mvp)[0][0]);
 
     glClear(GL_COLOR_BUFFER_BIT);
+	 
+	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D,texHandle[texID]);
-    glBindVertexArray(vaoHandle);
+	 
+	 glActiveTexture(GL_TEXTURE1);
+	 glBindTexture(GL_TEXTURE_2D,scratchHandle);
+    
+	 glBindVertexArray(vaoHandle);
     glDrawArrays(GL_PATCHES, 0, 4*resolution*resolution);
 	 glBindVertexArray(0);
 }
@@ -500,6 +567,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	
    if (action == GLFW_PRESS || action == GLFW_REPEAT){
       switch (key){
+			case GLFW_KEY_Q:
+					  reset=1;
+					  break;
          case GLFW_KEY_1:
 				texID = 0;
             break;
@@ -508,6 +578,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             break;
          case GLFW_KEY_3:
 				texID = 2;
+            break;
+         case GLFW_KEY_4:
+				texID = 3;
+            break;
+         case GLFW_KEY_5:
+				texID = 4;
+            break;
+         case GLFW_KEY_6:
+				texID = 5;
+            break;
+         case GLFW_KEY_7:
+				texID = 6;
+            break;
+         case GLFW_KEY_L:
+				reloadScratch = 1;
             break;
 			case GLFW_KEY_W:
 				zoom = 1;

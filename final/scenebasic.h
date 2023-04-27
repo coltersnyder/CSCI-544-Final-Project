@@ -10,12 +10,15 @@
 class SceneBasic : public Scene
 {
 private:
-    GLuint vaoHandle, texHandle;
+    GLuint vaoHandle;
+	 GLuint texHandle[7];
+	 GLuint scratchHandle;
+	 GLuint scratchMap;//where is the location of the scratchMap in GPU?
     GLuint programHandle;
 	 ArcCam* _arcCam;
    void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
 	void compileShaderProgram();
-	GLuint setupTexture();
+	GLuint setupTexture(const char *);
 
 	float angle;
 	float tPrev, rotSpeed;
@@ -26,7 +29,7 @@ private:
    std::string getProgramInfoLog(GLuint program);
 	glm::vec2 _mousePosition;//where is the mouse?
 	void setCallbacks();
-
+	void loadScratch(GLuint textureHandle);
 
 		
 
@@ -37,7 +40,7 @@ public:
     void update( float t );
     void render();
     void resize(int, int);
-	 void handleCursor(glm::vec2 pos);
+	 void handleCamera(glm::vec2 pos);
 
 };
 
