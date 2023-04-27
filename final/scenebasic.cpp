@@ -28,7 +28,7 @@ SceneBasic::SceneBasic() { }
 GLuint SceneBasic::setupTexture(){//this could just be the texture library in ingredients
 	GLuint textureHandle = 0;
 	GLint imageWidth, imageHeight, imageChannels;
-	const char * FILENAME = "./image/white.png";
+	const char * FILENAME = "./image/map.png";
 
    GLubyte* data = stbi_load( FILENAME, &imageWidth, &imageHeight, &imageChannels, 0);
 	
@@ -335,14 +335,14 @@ void SceneBasic::linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLin
     }
 
     // Bind index 0 to the shader input variable "VertexPosition"
-    //glBindAttribLocation(programHandle, 0, "VertexPosition");
+    glBindAttribLocation(programHandle, 0, "VertexPosition");
     // Bind index 1 to the shader input variable "VertexColor"
-    //glBindAttribLocation(programHandle, 1, "VertexColor");
+    glBindAttribLocation(programHandle, 1, "vTexCoord");
 
     // Attach the shaders to the program object
     glAttachShader( programHandle, vertShader );
-	glAttachShader( programHandle, tcsShader  );
-	glAttachShader( programHandle, tesShader  );
+	 glAttachShader( programHandle, tcsShader  );
+	 glAttachShader( programHandle, tesShader  );
     glAttachShader( programHandle, fragShader );
 
     // Link the program
@@ -414,8 +414,8 @@ void SceneBasic::render()
 
 	glm::vec3 Front;
 	glm::vec3 front;
-	float Yaw = -128.1f;
-	float Pitch = -42.4f;
+	float Yaw = 0.0f;
+	float Pitch = -45.0f;
     front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     front.y = sin(glm::radians(Pitch));
     front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));

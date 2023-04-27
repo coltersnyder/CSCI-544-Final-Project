@@ -40,5 +40,5 @@ void main(){
 
     p += normal * Height;
 
-    gl_Position = MVP * p;
+    gl_Position = MVP*p;
 }
