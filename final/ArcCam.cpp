@@ -23,7 +23,14 @@ void ArcCam::recomputeOrientation() {
 	_position = _direction + _lookAtPoint;
 	computeViewMatrix();
 }
-
+void ArcCam::moveVert(GLfloat amount){
+	_lookAtPoint[0] += amount;
+	recomputeOrientation();
+}
+void ArcCam::moveHorz(GLfloat amount){
+	_lookAtPoint[2] += amount;
+	recomputeOrientation();
+}
 void ArcCam::moveForward(GLfloat movementFactor) {
 	if (_radius > 0.5){//do not go past the look at point
 		_radius -= movementFactor;

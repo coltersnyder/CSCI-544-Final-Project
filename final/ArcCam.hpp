@@ -27,6 +27,8 @@ public:
     void recomputeOrientation();
     void moveForward(GLfloat movementFactor);
     void moveBackward(GLfloat movementFactor);
+	 void moveVert(GLfloat amount);
+	 void moveHorz(GLfloat amount);
 	 void rotate(GLfloat dTheta, GLfloat dPhi);
 	   void setTheta( GLfloat t ) { _theta = t; }
 		void setPhi( GLfloat p ) { _phi = p; }

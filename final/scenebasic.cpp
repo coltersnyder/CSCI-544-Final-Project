@@ -23,9 +23,12 @@ using glm::mat4;
 #define PI 3.14159265
 #endif
 
+//Camera Variables
 glm::vec2 _newMousePos = glm::vec2(-1,-1);
 GLuint _leftMouseButtonState = 0;
-int move = 0;
+int zoom = 0;
+int vert = 0;
+int horz = 0;
 
 SceneBasic::SceneBasic() {
 	 _arcCam = new ArcCam();//make a new arcCamera
@@ -426,13 +429,29 @@ void SceneBasic::handleCursor(glm::vec2 pos) {
    
    }
    _mousePosition = pos;
-	if(move == 1){
+	if(zoom == 1){
 			  _arcCam->moveForward(0.5);
-			  move = 0;
+			  zoom = 0;
 	}
-	else if(move == -1){
+	else if(zoom == -1){
 			  _arcCam->moveBackward(0.5);
-			  move = 0;
+			  zoom = 0;
+	}
+	if(vert == 1){
+			  _arcCam->moveVert(0.5);
+			  vert = 0;
+	}
+	else if(vert == -1){
+			  _arcCam->moveVert(-0.5);
+			  vert = 0;
+	}
+	if(horz == 1){
+			  _arcCam->moveHorz(0.5);
+			  horz = 0;
+	}
+	else if(horz == -1){
+			  _arcCam->moveHorz(-0.5);
+			  horz = 0;
 	}
 }  
 
@@ -450,18 +469,8 @@ void SceneBasic::render()
 {
 	glViewport(0,0,width,height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glm::vec3 Front;
-	glm::vec3 front;
-	float Yaw = 0.0f;
-	float Pitch = -45.0f;
-    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    front.y = sin(glm::radians(Pitch));
-    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    Front = glm::normalize(front);
 	
-	vec3 cameraPos = vec3(150.0f * cos(angle), 100.0f, 150.0f * sin(angle));//TODO we can probally remove this part
-	//view = glm::lookAt(cameraPos, cameraPos + Front, vec3(0.0f,1.0f,0.0f));
+	
 	view = _arcCam->getViewMatrix();
 
 
@@ -500,11 +509,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
          case GLFW_KEY_3:
             break;
 			case GLFW_KEY_W:
-				move = 1;
+				zoom = 1;
 				break;
 			case GLFW_KEY_S:
-				move = -1;
+				zoom = -1;
 				break;
+			case GLFW_KEY_UP:
+				vert = 1;
+				break;
+			case GLFW_KEY_DOWN:
+				vert = -1;
+				break;
+			case GLFW_KEY_LEFT:
+				horz = 1;
+				break;
+			case GLFW_KEY_RIGHT:
+				horz = -1;
+				break;
+				
       }
    }
 
