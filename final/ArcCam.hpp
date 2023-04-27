@@ -21,9 +21,9 @@ private:
         //Angles and such for arcball
         GLfloat _theta;
         GLfloat _phi;
-		  GLfloat _radius;
 public:
 		 	ArcCam();
+		  GLfloat _radius;
     void recomputeOrientation();
     void moveForward(GLfloat movementFactor);
     void moveBackward(GLfloat movementFactor);
@@ -36,7 +36,7 @@ public:
 	void computeViewMatrix() { this->_viewMatrix = glm::lookAt( this->_position, this->_lookAtPoint, this->_upVector ); }
 	 glm::mat4 getViewMatrix() { return this->_viewMatrix; }
 	 glm::vec3 getPos(){return _position;};
-	 void setLookAtPoint( glm::vec3 lookAt ) { _lookAtPoint = lookAt; }
+	 void setLookAtPoint( glm::vec3 lookAt ) { _lookAtPoint = lookAt; recomputeOrientation();}
 };
 
 #endif // ARC_CAM_HPP
