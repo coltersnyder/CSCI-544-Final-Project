@@ -10,20 +10,20 @@
 class SceneBasic : public Scene
 {
 private:
-    GLuint vaoHandle, texHandle;
+    GLuint vaoHandle, texHandle[3];
     GLuint programHandle;
-	 ArcCam* _arcCam;
-   void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
+	ArcCam* _arcCam;
+    void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
 	void compileShaderProgram();
-	GLuint setupTexture();
+	GLuint setupTexture(const char *FILENAME);
 
 	float angle;
 	float tPrev, rotSpeed;
 
     unsigned int resolution;
     int width, height;
-   std::string getShaderInfoLog(GLuint shader);
-   std::string getProgramInfoLog(GLuint program);
+    std::string getShaderInfoLog(GLuint shader);
+    std::string getProgramInfoLog(GLuint program);
 	glm::vec2 _mousePosition;//where is the mouse?
 	void setCallbacks();
 
@@ -37,7 +37,7 @@ public:
     void update( float t );
     void render();
     void resize(int, int);
-	 void handleCursor(glm::vec2 pos);
+	void handleCursor(glm::vec2 pos);
 
 };
 

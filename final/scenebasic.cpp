@@ -44,7 +44,7 @@ SceneBasic::~SceneBasic(){
 	delete _arcCam;
 }
 
-GLuint SceneBasic::setupTexture(const char *FILENAME){//this could just be the texture library in ingredients
+GLuint SceneBasic::setupTexture(const char *FILENAME){ //this could just be the texture library in ingredients
 	GLuint textureHandle = 0;
 	GLint imageWidth, imageHeight, imageChannels;
 
