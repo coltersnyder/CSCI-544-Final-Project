@@ -10,23 +10,21 @@
 class SceneBasic : public Scene
 {
 private:
+<<<<<<< HEAD
     GLuint vaoHandle;
 	 GLuint texHandle[7];
 	 GLuint scratchHandle;
 	 GLuint scratchMap;//where is the location of the scratchMap in GPU?
     GLuint programHandle;
-	 ArcCam* _arcCam;
-   void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
+	ArcCam* _arcCam;
+    void linkMe(GLint vertShader, GLint tcsShader, GLint tesShader, GLint fragShader);
 	void compileShaderProgram();
-	GLuint setupTexture(const char *);
-
-	float angle;
-	float tPrev, rotSpeed;
+	GLuint setupTexture(const char *FILENAME);
 
     unsigned int resolution;
     int width, height;
-   std::string getShaderInfoLog(GLuint shader);
-   std::string getProgramInfoLog(GLuint program);
+    std::string getShaderInfoLog(GLuint shader);
+    std::string getProgramInfoLog(GLuint program);
 	glm::vec2 _mousePosition;//where is the mouse?
 	void setCallbacks();
 	void loadScratch(GLuint textureHandle);
@@ -41,7 +39,6 @@ public:
     void render();
     void resize(int, int);
 	 void handleCamera(glm::vec2 pos);
-
 };
 
 void mouse_button_callback(GLFWwindow* window, int key, int action, int mods);
