@@ -30,6 +30,8 @@ int zoom = 0;
 int vert = 0;
 int horz = 0;
 
+//what texture we should be on
+int texID = 0;
 SceneBasic::SceneBasic() {
 	 _arcCam = new ArcCam();//make a new arcCamera
     _arcCam->setPosition(vec3(10.0f * cos(angle), 1.5f, 10.0f * sin(angle)));
@@ -42,10 +44,9 @@ SceneBasic::~SceneBasic(){
 	delete _arcCam;
 }
 
-GLuint SceneBasic::setupTexture(){//this could just be the texture library in ingredients
+GLuint SceneBasic::setupTexture(const char *FILENAME){//this could just be the texture library in ingredients
 	GLuint textureHandle = 0;
 	GLint imageWidth, imageHeight, imageChannels;
-	const char * FILENAME = "./image/map.png";
 
    GLubyte* data = stbi_load( FILENAME, &imageWidth, &imageHeight, &imageChannels, 0);
 	
@@ -143,7 +144,9 @@ void SceneBasic::initScene(){
 		}
 	}
 
-	this->texHandle = setupTexture(); 
+	this->texHandle[0] = setupTexture("./image/happy.png"); 
+	this->texHandle[1] = setupTexture("./image/mad.png"); 
+	this->texHandle[2] = setupTexture("./image/map.png"); 
 
     // Create and populate the buffer objects
     // GLuint index_buffer;
@@ -177,7 +180,7 @@ void SceneBasic::initScene(){
 
 	 
 	 glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, texHandle);
+    glBindTexture( GL_TEXTURE_2D, texHandle[texID]);
 
 	 GLuint texmapPos = glGetUniformLocation(programHandle,"texMap");
 		
@@ -458,11 +461,6 @@ void SceneBasic::handleCursor(glm::vec2 pos) {
 void SceneBasic::update( float t )
 {
 		  handleCursor(_newMousePos);
-		  float deltaT = t - tPrev;
-		  if(tPrev == 0.0f) deltaT = 0.0f;
-		  tPrev = t;
-		  angle += rotSpeed * deltaT;
-		  if (angle > glm::two_pi<float>()) angle -= glm::two_pi<float>();
 }
 
 void SceneBasic::render()
@@ -475,7 +473,7 @@ void SceneBasic::render()
 
 
 	//Setup the MVP matrix
-	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 100.0f);
+	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 3000.0f);
 	model = glm::mat4(1.0f);//glm::rotate(mat4(1.0f), (GLfloat)(-PI/2.0), vec3(0.0f,0.0f,0.0f));
 	mat4 mvp = projection * view * model;
 	
@@ -484,7 +482,7 @@ void SceneBasic::render()
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, &(mvp)[0][0]);
 
     glClear(GL_COLOR_BUFFER_BIT);
-	 glBindTexture(GL_TEXTURE_2D,texHandle);
+	 glBindTexture(GL_TEXTURE_2D,texHandle[texID]);
     glBindVertexArray(vaoHandle);
     glDrawArrays(GL_PATCHES, 0, 4*resolution*resolution);
 	 glBindVertexArray(0);
@@ -503,10 +501,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
    if (action == GLFW_PRESS || action == GLFW_REPEAT){
       switch (key){
          case GLFW_KEY_1:
+				texID = 0;
             break;
          case GLFW_KEY_2:
+				texID = 1;
             break;
          case GLFW_KEY_3:
+				texID = 2;
             break;
 			case GLFW_KEY_W:
 				zoom = 1;
