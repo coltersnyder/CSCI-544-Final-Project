@@ -438,19 +438,19 @@ void SceneBasic::handleCursor(glm::vec2 pos) {
 			  zoom = 0;
 	}
 	if(vert == 1){
-			  _arcCam->moveVert(0.5);
+			  _arcCam->moveVert(1);
 			  vert = 0;
 	}
 	else if(vert == -1){
-			  _arcCam->moveVert(-0.5);
+			  _arcCam->moveVert(-1);
 			  vert = 0;
 	}
 	if(horz == 1){
-			  _arcCam->moveHorz(0.5);
+			  _arcCam->moveHorz(1);
 			  horz = 0;
 	}
 	else if(horz == -1){
-			  _arcCam->moveHorz(-0.5);
+			  _arcCam->moveHorz(-1);
 			  horz = 0;
 	}
 }  
