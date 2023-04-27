@@ -17,15 +17,15 @@ private:
     GLFWwindow * window;
     int fbw, fbh;
 	bool debug;           // Set true to enable debug messages
-
-    int lastTime, nFrames;
-    std::string wTitle;
+  	int lastTime;
+   int nFrames;
+   std::string wTitle;
 
 public:
     SceneRunner(const std::string & windowTitle, int width = WIN_WIDTH, int height = WIN_HEIGHT, int samples = 0) : debug(true) {
         // Initialize GLFW
         if( !glfwInit() ) exit( EXIT_FAILURE );
-
+			wTitle = windowTitle;
 #ifdef __APPLE__
         // Select OpenGL 4.1
         glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
@@ -53,8 +53,6 @@ public:
         }
         glfwMakeContextCurrent(window);
 
-        wTitle = windowTitle;
-
         // Get framebuffer size
         glfwGetFramebufferSize(window, &fbw, &fbh);
 
@@ -77,8 +75,8 @@ public:
 
     int run(std::unique_ptr<Scene> scene) {        
         // Enter the main loop
-        mainLoop(window, std::move(scene));
-
+			mainLoop(window, std::move(scene));
+			
 #ifndef __APPLE__
 		if( debug )
 			glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 1,
@@ -118,26 +116,27 @@ private:
         }
     }
 
-    void showFPS(GLFWwindow* window){
-        double currentTime = glfwGetTime();
-        double delta = currentTime - lastTime;
-        char ss[500] = {};
-        nFrames++;
-        if ( delta >= 1.0 ){ // If last update was more than 1 sec ago
-            double fps = ((double)(nFrames)) / delta;
-            sprintf(ss,"%s running at %lf FPS.",wTitle.c_str(),fps);
-            glfwSetWindowTitle(window, ss);
-            nFrames = 0;
-            lastTime = currentTime;
-        }
-    }
+ 	 void showFPS(GLFWwindow* window) {
+		double currentTime = glfwGetTime();
+		double delta = currentTime - lastTime;
+		char ss[500] = {};
+		nFrames++;
+		if ( delta >= 1.0 ){ // If last update was more than 1 sec ago
+			double fps = ((double)(nFrames)) / delta;
+			sprintf(ss,"%s running at %lf FPS.",wTitle.c_str(),fps);
+			glfwSetWindowTitle(window, ss);
+			nFrames = 0;
+			lastTime = currentTime;
+		  }
+	}
 
     void mainLoop(GLFWwindow * window, std::unique_ptr<Scene> scene) {
-        lastTime = 0;
-        nFrames = 0;
-
-        scene->setDimensions(fbw, fbh);
-        scene->initScene();
+        this->lastTime = 0;
+        this->nFrames = 0;
+        
+		  scene->setWindowRef(window);
+		  scene->setDimensions(fbw, fbh);
+		  scene->initScene();
         scene->resize(fbw, fbh);
 
         while( ! glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE) ) {
@@ -145,7 +144,7 @@ private:
 			
             scene->update(float(glfwGetTime()));
             scene->render();
-            showFPS(window);
+				showFPS(window);
             glfwSwapBuffers(window);
 
             glfwPollEvents();

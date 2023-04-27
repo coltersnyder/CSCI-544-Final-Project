@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 
 class Scene
 {
@@ -42,7 +43,9 @@ public:
     
     void animate( bool value ) { m_animate = value; }
     bool animating() { return m_animate; }
-    
+    void setWindowRef(GLFWwindow* win) {window = win;} 
+	 GLFWwindow* window = nullptr;//refrence to the active window
 protected:
 	bool m_animate;
+
 };

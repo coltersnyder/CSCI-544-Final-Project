@@ -2,6 +2,7 @@ set(target final)
 
 set(SOURCES
 	scenebasic.cpp
+	ArcCam.cpp
    main.cpp)
 
 add_executable( ${target} ${SOURCES} )

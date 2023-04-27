@@ -23,7 +23,21 @@ using glm::mat4;
 #define PI 3.14159265
 #endif
 
-SceneBasic::SceneBasic() { }
+glm::vec2 _newMousePos = glm::vec2(-1,-1);
+GLuint _leftMouseButtonState = 0;
+int move = 0;
+
+SceneBasic::SceneBasic() {
+	 _arcCam = new ArcCam();//make a new arcCamera
+    _arcCam->setPosition(vec3(10.0f * cos(angle), 1.5f, 10.0f * sin(angle)));
+    _arcCam->setTheta( -M_PI / 3.0f );
+    _arcCam->setPhi( M_PI / 3.0f );
+    _arcCam->setLookAtPoint(glm::vec3(0,0,0));
+    _arcCam->recomputeOrientation();
+}
+SceneBasic::~SceneBasic(){
+	delete _arcCam;
+}
 
 GLuint SceneBasic::setupTexture(){//this could just be the texture library in ingredients
 	GLuint textureHandle = 0;
@@ -55,7 +69,11 @@ GLuint SceneBasic::setupTexture(){//this could just be the texture library in in
 	return textureHandle;
 }
 
-
+void SceneBasic::setCallbacks(){
+	glfwSetMouseButtonCallback(this->window, mouse_button_callback);
+   glfwSetCursorPosCallback(this->window, cursor_callback);
+   glfwSetKeyCallback(this->window, key_callback);
+}
 void SceneBasic::initScene(){
     // **************************************************************************************
     // Choose one of the following options for the shader program.
@@ -163,6 +181,7 @@ void SceneBasic::initScene(){
 
     
 	 glBindVertexArray(0);
+	 setCallbacks();
 }
 
 
@@ -397,9 +416,29 @@ std::string SceneBasic::getProgramInfoLog(GLuint program) {
     }
     return log;
 }
+void SceneBasic::handleCursor(glm::vec2 pos) {
+   if(_mousePosition.x == -1) {//initilize the mouse so the camera dosn't flip
+        _mousePosition = pos;
+    }
+   if (_leftMouseButtonState == GLFW_PRESS){
+      _arcCam->rotate((pos.x - _mousePosition.x) * 0.005f,
+                         (_mousePosition.y - pos.y) * 0.005f );
+   
+   }
+   _mousePosition = pos;
+	if(move == 1){
+			  _arcCam->moveForward(0.5);
+			  move = 0;
+	}
+	else if(move == -1){
+			  _arcCam->moveBackward(0.5);
+			  move = 0;
+	}
+}  
 
 void SceneBasic::update( float t )
 {
+		  handleCursor(_newMousePos);
 		  float deltaT = t - tPrev;
 		  if(tPrev == 0.0f) deltaT = 0.0f;
 		  tPrev = t;
@@ -422,7 +461,9 @@ void SceneBasic::render()
     Front = glm::normalize(front);
 	
 	vec3 cameraPos = vec3(150.0f * cos(angle), 100.0f, 150.0f * sin(angle));//TODO we can probally remove this part
-	view = glm::lookAt(cameraPos, cameraPos + Front, vec3(0.0f,1.0f,0.0f));
+	//view = glm::lookAt(cameraPos, cameraPos + Front, vec3(0.0f,1.0f,0.0f));
+	view = _arcCam->getViewMatrix();
+
 
 	//Setup the MVP matrix
 	projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.3f, 100.0f);
@@ -445,4 +486,35 @@ void SceneBasic::resize(int w, int h)
     width = w;
     height = h;
     glViewport(0,0,w,h);
+}
+//--------------------Call Backs-------------------------------------
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	
+   if (action == GLFW_PRESS || action == GLFW_REPEAT){
+      switch (key){
+         case GLFW_KEY_1:
+            break;
+         case GLFW_KEY_2:
+            break;
+         case GLFW_KEY_3:
+            break;
+			case GLFW_KEY_W:
+				move = 1;
+				break;
+			case GLFW_KEY_S:
+				move = -1;
+				break;
+      }
+   }
+
+}
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods ) {
+    if( button == GLFW_MOUSE_BUTTON_LEFT ) {
+        // update the left mouse button's state
+        _leftMouseButtonState = action;
+    }
+}
+void cursor_callback(GLFWwindow *window, double x, double y ) {
+    _newMousePos = glm::vec2(x, y);
 }
