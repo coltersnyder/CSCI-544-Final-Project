@@ -32,6 +32,13 @@
 *.app
 *.swp
 
+# LaTeX
+*.aux
+*.bcf
+*.log
+*.run.xml
+*.synctex.gz
+
 
 build/
 
